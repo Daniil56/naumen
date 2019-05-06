@@ -1,0 +1,16 @@
+language: java
+jdk:
+  - oraclejdk9
+sudo: false
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+env:
+  global:
+    - CODECOV_TOKEN="19f7b473-ffca-402f-b305-ae7bda6e0d27"
+notifications:
+  email:
+    recipients:
+    - emelyanov.daniil93@gmail.com
+    on_success: never # default: change
+    on_failure: always # default: always
