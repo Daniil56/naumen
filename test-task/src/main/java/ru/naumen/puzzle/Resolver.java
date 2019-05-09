@@ -3,6 +3,9 @@ import java.util.*;
 
 /**
  * Класс реализующий интерфейс решения головолки, аналога игры в 8
+ * @author Daniil Emelyanov
+ * @since 08.05.2019
+ * @version 0.2
  */
 public class Resolver implements PuzzleResolver {
 
@@ -13,6 +16,9 @@ public class Resolver implements PuzzleResolver {
  * В path ключем является предыдущий путь, значением текущий путь.
  * Затем из всех возможных путей path, значений целевого положения вершин end и данного изначального положения start,
  * c помощью метода pathRecovery, происходит восстоновление наикратчайшего пути в массив result.
+ * Добавил проверку на решаемость начального состояния игра, если решение нет, выбрасывает исключение
+ * NoStateSolvedException.
+ * Произвел небольшой рефакторинг алгоритма bsf.
  * @param start первоначальное состояние головоломки
  * @return результирующий массив чисел, являющийся решением головоломки
  */
@@ -21,37 +27,57 @@ public class Resolver implements PuzzleResolver {
         int[] cache = new int[8];
         int first = fromStateToInt(start);
         LinkedList<Integer> queueState = new LinkedList<>();
-        Set<Integer> visited = new HashSet<>();
+        HashMap<Integer, Integer> visited = new HashMap();
         HashMap<Integer, Integer> path = new HashMap<>();
         int end = 12340567;
+        if (!isSolvable(start)) {
+                throw new NoStateSolvedException("This start state not be solved");
+        }
+
         if (first == end) {
             result = new int[0];
         }
-        queueState.add(first);
-        visited.add(first);
-        while (queueState.size() > 0) {
-            int len = queueState.size();
-            for (int i = 0; i < len; i++) {
+        queueState.addLast(first);
+        visited.put(first, 0);
+        while (!queueState.isEmpty()) {
                 int curr = queueState.remove();
                 int[] curState = toState(curr, cache);
-                for (int s : getStateEdge(curState)) {
-                    if (visited.contains(s)) {
-                        continue;
-                    }
-                    visited.add(s);
-                    queueState.add(s);
-                    path.put(s, curr);
-
-                    if (s == end) {
-                        i = len;
-                        queueState.clear();
-                        break;
-                    }
+            for (Integer edge : getStateEdge(curState)) {
+                if (!visited.containsKey(edge)) {
+                    visited.put(edge, visited.get(curr) + 1);
+                    queueState.addLast(edge);
+                    path.put(edge, curr);
                 }
-
+                if (edge == end) {
+                    queueState.clear();
+                    break;
+                }
             }
+
         }
         result = pathRecovery(path, end, first);
+        return result;
+    }
+
+    /**
+     * Метод определяющий есть ли решение у данного состоянии игры, путем вычесление остатка от деления
+     * для суммы числа инверсий в массиве
+     * @param start начальное сосотояние игры
+     * @return есть ли решение
+     */
+    private boolean isSolvable(int[] start) {
+        boolean result;
+        int count = 0;
+        for (int index = 0; index < start.length - 1; index++)  {
+                if (start[index] > 0 && start[index + 1] > 0 && start[index] > start[index + 1]) {
+                    count++;
+                }
+        }
+        if (count == 0) {
+            result = true;
+        } else {
+            result = count % 2 != 0;
+        }
         return result;
     }
 

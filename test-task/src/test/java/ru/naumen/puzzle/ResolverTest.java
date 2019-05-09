@@ -1,7 +1,6 @@
 package ru.naumen.puzzle;
 
 import org.junit.Test;
-
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
 
@@ -24,4 +23,17 @@ public class ResolverTest {
         assertThat(board.resolve(permutationDefault), is(new int[0]));
     }
 
+    /**
+     * Тест исключения  NoStateSolvedException
+     * При передаче медоту resolve класса Resolver начального состояние, не имеющего решения
+     * Выбрасывает исключение NoStateSolvedException
+     */
+    @Test(expected = NoStateSolvedException.class)
+    public void whenSolverStateNotSolvedThenException() {
+        int[] premutationNpe = new int[] {2, 6, 1, 3, 0, 5, 4, 7};
+        int[] premutationNextNpe = new int[] {3, 1, 4, 5, 2, 6, 7, 0};
+        Resolver board = new Resolver();
+        assertThat(board.resolve(premutationNpe), is(new int[0]));
+        assertThat(board.resolve(premutationNextNpe), is(new int[0]));
+    }
 }
